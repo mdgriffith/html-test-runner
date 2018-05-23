@@ -259,10 +259,10 @@ viewReason { reason, description } =
         Failure.Comparison one two ->
             description ++ " " ++ one ++ " " ++ two
 
-        Failure.ListDiff oneList twoList ->
-            "List Diff\n"
+        Failure.ListDiff expected actual ->
+            "expected\n"
                 ++ String.join "    \n" oneList
-                ++ " Compared to\n"
+                ++ "actual\n"
                 ++ String.join "    \n" twoList
 
         Failure.CollectionDiff { expected, actual, extra, missing } ->
@@ -270,11 +270,11 @@ viewReason { reason, description } =
                 [ formatKeyValue "expected" expected
                 , formatKeyValue "actual" actual
                 , formatKeyValue "extra" (String.join ", " extra)
-                , formatKeyValue "missin" (String.join ", " missing)
+                , formatKeyValue "missing" (String.join ", " missing)
                 ]
 
         Failure.TODO ->
-            "TODO"
+            description
 
         Failure.Invalid _ ->
             description
