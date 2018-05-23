@@ -5,6 +5,7 @@ import Fixtures
 import Random
 import Test exposing (..)
 import Test.Runner.Exploration as Runner exposing (Runner)
+import Test.Runner.Failure
 
 
 suite : Test
@@ -20,7 +21,8 @@ suite =
                         , failures =
                             [ ( []
                               , [ { given = Nothing
-                                  , message = Fixtures.noTestsDescription
+                                  , reason = Test.Runner.Failure.Custom
+                                  , description = Fixtures.noTestsDescription
                                   }
                                 ]
                               )
@@ -54,7 +56,8 @@ suite =
                         , failures =
                             [ ( [ "both", "two" ]
                               , [ { given = Nothing
-                                  , message = "message"
+                                  , reason = Test.Runner.Failure.Custom
+                                  , description = "message"
                                   }
                                 ]
                               )
@@ -70,7 +73,8 @@ suite =
                         , failures =
                             [ ( [ "todo then failing", "done" ]
                               , [ { given = Nothing
-                                  , message = "just cause"
+                                  , reason = Test.Runner.Failure.Custom
+                                  , description = "just cause"
                                   }
                                 ]
                               )
@@ -86,7 +90,8 @@ suite =
                         , failures =
                             [ ( [ "todo then passing" ]
                               , [ { given = Nothing
-                                  , message = "haven't done this yet"
+                                  , reason = Test.Runner.Failure.TODO
+                                  , description = "haven't done this yet"
                                   }
                                 ]
                               )
@@ -149,8 +154,9 @@ expect :
         List
             ( List String
             , List
-                { given : Maybe String
-                , message : String
+                { description : String
+                , given : Maybe String
+                , reason : Test.Runner.Failure.Reason
                 }
             )
     }
@@ -163,8 +169,8 @@ expect final runner =
 
         expectFinal passed failures =
             Expect.all
-                [ .passed >> flip Expect.equal passed
-                , .failures >> flip Expect.equal (format failures)
+                [ \subject -> Expect.equal subject.passed passed
+                , \subject -> Expect.equal subject.failures (format failures)
                 ]
                 final
     in
@@ -195,7 +201,47 @@ expect final runner =
 
         _ ->
             Expect.fail <|
-                "Given: "
-                    ++ toString runner
-                    ++ "\nExpected: "
-                    ++ toString final
+                "Given:\n"
+                    ++ Runner.toString runner
+                    ++ "\n\nExpected:\n"
+                    ++ finalToString final
+
+
+finalToString final =
+    let
+        keyValue key value =
+            "    " ++ key ++ ": " ++ value
+
+        failureToString ( labels, messages ) =
+            String.join ", " labels ++ "->" ++ String.join ", " (List.map .description messages)
+    in
+    String.join "\n"
+        [ keyValue "steps" (String.fromInt final.steps)
+        , keyValue "passed" (String.fromInt final.passed)
+        , keyValue "status" (statusToString final.status)
+        , keyValue "failures" ("\n        " ++ String.join "        \n" (List.map failureToString final.failures))
+        ]
+
+
+statusToString status =
+    case status of
+        Running ->
+            "Running"
+
+        Fail ->
+            "Fail"
+
+        Todo ->
+            "Todo"
+
+        Pass ->
+            "Pass"
+
+        IncompleteSkip ->
+            "Incomplete skip"
+
+        IncompleteOnly ->
+            "Incomplete only"
+
+        IncompleteCustom ->
+            "Incomplete custom"

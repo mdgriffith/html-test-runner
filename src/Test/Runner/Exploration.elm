@@ -7,6 +7,7 @@ module Test.Runner.Exploration
         , formatFailure
         , fromTest
         , step
+        , toString
         )
 
 import Expect
@@ -14,6 +15,48 @@ import Random
 import Test
 import Test.Runner
 import Test.Runner.Failure
+
+
+toString (Runner internals) =
+    let
+        keyValue key value =
+            "    " ++ key ++ ": " ++ value
+    in
+    String.join "\n"
+        [ keyValue "passed" (String.fromInt internals.passed)
+        , keyValue "todos" ("\n        [ " ++ String.join "        \n" (List.map failureToString internals.todos) ++ "]")
+        , keyValue "failures" ("\n        " ++ String.join "        \n" (List.map failureToString internals.failures))
+        , keyValue "incomplete"
+            (case internals.incomplete of
+                Nothing ->
+                    "Nothing"
+
+                Just reason ->
+                    "Just "
+                        ++ (case reason of
+                                Skip ->
+                                    "Skip"
+
+                                Only ->
+                                    "Only"
+
+                                Custom label ->
+                                    "Custom " ++ label
+                           )
+            )
+        , keyValue "queue"
+            (case internals.queue of
+                [] ->
+                    "[]"
+
+                q ->
+                    String.join " " (List.map (.labels >> String.join ", ") q)
+            )
+        ]
+
+
+failureToString (Failure labels messages) =
+    String.join ", " labels ++ "->" ++ String.join ", " (List.map .description messages)
 
 
 type Runner
