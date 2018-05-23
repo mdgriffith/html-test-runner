@@ -50,7 +50,7 @@ testExpectations =
         [ test "this should succeed" <|
             \() ->
                 "blah"
-                    |> Expect.equal " blah"
+                    |> Expect.equal "blah"
         , test "this should fail" <|
             \() ->
                 "something"
