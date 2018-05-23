@@ -21,7 +21,7 @@ suite =
                         , failures =
                             [ ( []
                               , [ { given = Nothing
-                                  , reason = Test.Runner.Failure.Custom
+                                  , reason = Test.Runner.Failure.Invalid Test.Runner.Failure.EmptyList
                                   , description = Fixtures.noTestsDescription
                                   }
                                 ]
