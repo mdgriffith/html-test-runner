@@ -49,4 +49,4 @@ twoTests () =
 
 noTestsDescription : String
 noTestsDescription =
-    "This `describe \"nothing\"` has no tests in it. Let's give it some!"
+    "This `describe nothing` has no tests in it. Let's give it some!"
