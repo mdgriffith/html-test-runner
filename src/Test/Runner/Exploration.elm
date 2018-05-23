@@ -177,14 +177,14 @@ fromExpectation internals labels expectations =
             List.foldr partition ( [], [] ) expectations
 
         partition e =
-            case ( Test.Runner.isTodo e, Test.Runner.getFailureReason e ) of
-                ( True, Just result ) ->
-                    Tuple.mapFirst ((::) result)
+            case Test.Runner.getFailureReason e of
+                Just reason ->
+                    if Test.Runner.isTodo e then
+                        Tuple.mapFirst ((::) reason)
+                    else
+                        Tuple.mapSecond ((::) reason)
 
-                ( False, Just result ) ->
-                    Tuple.mapSecond ((::) result)
-
-                ( _, Nothing ) ->
+                Nothing ->
                     identity
     in
     if not <| List.isEmpty failures then
