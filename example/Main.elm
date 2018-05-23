@@ -2,7 +2,7 @@ module HtmlRunnerExample exposing (..)
 
 {-| HOW TO RUN THIS EXAMPLE
 
-1.  Run elm-reactor from the same directory as your tests' elm-package.json. (For example, if you have tests/elm-package.json, then cd into tests/ and
+1.  Run elm-reactor from the same directory as your tests' elm.json. (For example, if you have tests/elm.json, then cd into tests/ and
     run elm-reactor.)
 2.  Visit <http://localhost:8000> and bring up this file.
 
@@ -39,7 +39,7 @@ testWithoutNums =
     describe "withoutNums"
         [ fuzzWith { runs = 100 } (tuple3 ( string, float, string )) "adding numbers to strings has no effect" <|
             \( prefix, num, suffix ) ->
-                withoutNums (prefix ++ toString num ++ suffix)
+                withoutNums (prefix ++ String.fromFloat num ++ suffix)
                     |> Expect.equal (withoutNums (prefix ++ suffix))
         ]
 

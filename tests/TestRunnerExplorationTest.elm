@@ -2,7 +2,7 @@ module TestRunnerExplorationTest exposing (suite)
 
 import Expect
 import Fixtures
-import Random.Pcg as Random
+import Random
 import Test exposing (..)
 import Test.Runner.Exploration as Runner exposing (Runner)
 

@@ -9,8 +9,10 @@ one of these tests in elm-reactor to have it run and show outputs.
 
 -}
 
-import Html
-import Random.Pcg as Random
+-- import Html
+
+import Browser
+import Random
 import Test exposing (Test)
 import Test.Runner.Html.App as App
 import Test.Runner.Html.View as View
@@ -20,7 +22,7 @@ import View as View
 {-| A program which will run tests and report their results.
 -}
 type alias TestProgram =
-    Program Never App.Model App.Msg
+    Program () App.Model App.Msg
 
 
 {-| Run the test and report the results.
@@ -39,8 +41,8 @@ run =
 -}
 runWithOptions : Maybe Int -> Maybe Random.Seed -> Test -> TestProgram
 runWithOptions runs seed test =
-    Html.program
-        { init = App.init (Maybe.withDefault 100 runs) seed test
+    Browser.embed
+        { init = always (App.init (Maybe.withDefault 100 runs) seed test)
         , update = App.update
         , view = App.present >> View.view
         , subscriptions = \_ -> Sub.none

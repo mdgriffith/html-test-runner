@@ -1,6 +1,5 @@
 module View exposing (view)
 
-import Color exposing (Color, rgb)
 import Element exposing (..)
 import Element.Attributes exposing (..)
 import Html exposing (Html)
@@ -11,7 +10,7 @@ import Style.Color as Color
 import Style.Font as Font
 import Test.Runner.Exploration as Runner
 import Test.Runner.Html.View as View
-import Time exposing (Time)
+import Time
 
 
 view : View.Model -> Html a
@@ -36,31 +35,35 @@ type Palette
     | Warning
 
 
+rgb255 r g b =
+    Style.rgb (r / 255) (g / 255) (b / 255)
+
+
 color : Palette -> Color
 color palette =
     case palette of
         Primary ->
-            rgb 41 60 75
+            rgb255 41 60 75
 
         Secondary ->
             -- gray color on elm blog is rgb 221 221 221 but it doesn't meet
             -- accessibility standards for contrast http://webaim.org/resources/contrastchecker/
-            rgb 84 84 84
+            rgb255 84 84 84
 
         Accent ->
-            rgb 96 181 204
+            rgb255 96 181 204
 
         Background ->
-            rgb 255 255 255
+            rgb255 255 255 255
 
         Good ->
-            rgb 0 100 0
+            rgb255 0 100 0
 
         Bad ->
-            rgb 179 0 0
+            rgb255 179 0 0
 
         Warning ->
-            rgb 122 67 0
+            rgb255 122 67 0
 
 
 withColor :
@@ -173,12 +176,12 @@ running completed remaining =
     column None
         []
         [ header (Header Primary) [ paddingBottom 24 ] (text "Running Tests...")
-        , row None [] [ text (toString completed ++ " completed") ]
-        , row None [] [ text (toString remaining ++ " remaining") ]
+        , row None [] [ text (String.fromInt completed ++ " completed") ]
+        , row None [] [ text (String.fromInt remaining ++ " remaining") ]
         ]
 
 
-finished : Time -> Int -> List a -> ( Palette, String ) -> Element Styles variation msg
+finished : Time.Posix -> Int -> List a -> ( Palette, String ) -> Element Styles variation msg
 finished duration passed failures ( headlineColor, headlineText ) =
     column None
         []
@@ -189,8 +192,8 @@ finished duration passed failures ( headlineColor, headlineText ) =
                 [ spacing 10 ]
                 [ [ bold "Duration", bold "Passed", bold "Failed" ]
                 , [ text (formattedDuration duration)
-                  , text (toString passed)
-                  , text (toString (List.length failures))
+                  , text (String.fromInt passed)
+                  , text (String.fromInt (List.length failures))
                   ]
                 ]
             ]
@@ -225,19 +228,17 @@ oneFailure failure =
                 (coloredLabel '✗' Bad)
                 failure
 
-        inContext { given, message } =
+        inContext { given, description } =
             column None
                 [ spacing 10 ]
                 [ wrappedRow None [] [ whenJust given givenCode ]
-                , wrappedRow None [] [ code None message ]
+                , wrappedRow None [] [ code None description ]
                 ]
     in
     el None
-        [ inlineStyle
-            [ ( "display", "list-item" )
-            , ( "margin", "10px" )
-            , ( "padding", "10px" )
-            ]
+        [ inlineStyle "display" "list-item"
+        , inlineStyle "margin" "10px"
+        , inlineStyle "padding" "10px"
         ]
     <|
         column None
@@ -257,18 +258,16 @@ coloredLabel char textColor str =
         [ text (String.cons char (String.cons ' ' str)) ]
 
 
-formattedDuration : Time -> String
+formattedDuration : Time.Posix -> String
 formattedDuration time =
-    toString time ++ " ms"
+    String.fromInt (Time.toMillis Time.utc time) ++ " ms"
 
 
 code : style -> String -> Element style variations msg
 code style str =
     node "pre" <|
         el style
-            [ inlineStyle
-                [ ( "white-space", "pre-wrap" )
-                , ( "font-family", "monospace" )
-                ]
+            [ inlineStyle "white-space" "pre-wrap"
+            , inlineStyle "font-family" "monospace"
             ]
             (text str)

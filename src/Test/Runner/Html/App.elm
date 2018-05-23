@@ -9,21 +9,21 @@ module Test.Runner.Html.App
 
 import Expect exposing (Expectation)
 import Process
-import Random.Pcg as Random
+import Random
 import Task
 import Test exposing (Test)
 import Test.Runner.Exploration as Runner
 import Test.Runner.Html.View as View
-import Time exposing (Time)
+import Time
 
 
 type Model
     = NotStarted (Maybe Random.Seed) Int Test
-    | Started Time Time Runner.Status
+    | Started Time.Posix Time.Posix Runner.Status
 
 
 type Msg
-    = Dispatch Time
+    = Dispatch Time.Posix
 
 
 dispatch : Cmd Msg
@@ -48,7 +48,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update (Dispatch now) model =
     case model of
         NotStarted Nothing runs test ->
-            ( floor now
+            ( Time.toMillis Time.utc now
                 |> Random.initialSeed
                 |> start runs test
                 |> Started now now
@@ -78,4 +78,11 @@ present model =
             Nothing
 
         Started startTime now status ->
-            Just ( now - startTime, status )
+            let
+                diff =
+                    Time.toMillis Time.utc now - Time.toMillis Time.utc startTime
+            in
+            Just
+                ( Time.millisToPosix diff
+                , status
+                )

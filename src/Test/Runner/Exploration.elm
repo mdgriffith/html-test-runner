@@ -10,9 +10,10 @@ module Test.Runner.Exploration
         )
 
 import Expect
-import Random.Pcg
+import Random
 import Test
 import Test.Runner
+import Test.Runner.Failure
 
 
 type Runner
@@ -48,10 +49,17 @@ type Reason
 
 
 type Failure
-    = Failure (List String) (List { given : Maybe String, message : String })
+    = Failure
+        (List String)
+        (List
+            { given : Maybe String
+            , description : String
+            , reason : Test.Runner.Failure.Reason
+            }
+        )
 
 
-fromTest : Int -> Random.Pcg.Seed -> Test.Test -> Runner
+fromTest : Int -> Random.Seed -> Test.Test -> Runner
 fromTest runs seed test =
     let
         new queue incomplete =
@@ -81,33 +89,38 @@ formatFailure :
     (String -> a)
     -> (String -> a)
     -> Failure
-    -> ( List a, List { given : Maybe String, message : String } )
+    ->
+        ( List a
+        , List
+            { given : Maybe String
+            , description : String
+            , reason : Test.Runner.Failure.Reason
+            }
+        )
 formatFailure formatFirst formatLast (Failure labels errors) =
     ( Test.Runner.formatLabels formatFirst formatLast labels, errors )
 
 
 step : Runner -> Status
 step (Runner internals) =
-    case
-        ( internals.incomplete
-        , internals.todos
-        , internals.failures
-        , internals.queue
-        )
-    of
-        ( Nothing, [], [], [] ) ->
-            Pass internals.passed
+    case ( internals.failures, internals.queue ) of
+        ( [], [] ) ->
+            case internals.incomplete of
+                Nothing ->
+                    case internals.todos of
+                        [] ->
+                            Pass internals.passed
 
-        ( Nothing, todos, [], [] ) ->
-            Todo internals.passed todos
+                        todos ->
+                            Todo internals.passed todos
 
-        ( Just reason, _, [], [] ) ->
-            Incomplete internals.passed reason
+                Just incompleteReason ->
+                    Incomplete internals.passed incompleteReason
 
-        ( _, _, failures, [] ) ->
+        ( failures, [] ) ->
             Fail internals.passed failures
 
-        ( _, _, _, next :: queue ) ->
+        ( _, next :: queue ) ->
             next.run ()
                 |> fromExpectation { internals | queue = queue } next.labels
 
@@ -119,7 +132,7 @@ fromExpectation internals labels expectations =
             List.foldr partition ( [], [] ) expectations
 
         partition e =
-            case ( Test.Runner.isTodo e, Test.Runner.getFailure e ) of
+            case ( Test.Runner.isTodo e, Test.Runner.getFailureReason e ) of
                 ( True, Just result ) ->
                     Tuple.mapFirst ((::) result)
 
