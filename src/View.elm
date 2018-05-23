@@ -9,6 +9,7 @@ import Style.Border as Border
 import Style.Color as Color
 import Style.Font as Font
 import Test.Runner.Exploration as Runner
+import Test.Runner.Failure as Failure
 import Test.Runner.Html.View as View
 import Time
 
@@ -228,11 +229,11 @@ oneFailure failure =
                 (coloredLabel '✗' Bad)
                 failure
 
-        inContext { given, description } =
+        inContext ({ given } as reason) =
             column None
                 [ spacing 10 ]
                 [ wrappedRow None [] [ whenJust given givenCode ]
-                , wrappedRow None [] [ code None description ]
+                , paragraph None [ width (px 800) ] [ code None (viewReason reason) ]
                 ]
     in
     el None
@@ -244,6 +245,44 @@ oneFailure failure =
         column None
             [ spacing 5 ]
             (labels ++ [ spacer 3 ] ++ List.map inContext expectations)
+
+
+viewReason : { a | reason : Failure.Reason, description : String } -> String
+viewReason { reason, description } =
+    case reason of
+        Failure.Custom ->
+            description
+
+        Failure.Equality one two ->
+            description ++ " " ++ one ++ " " ++ two
+
+        Failure.Comparison one two ->
+            description ++ " " ++ one ++ " " ++ two
+
+        Failure.ListDiff oneList twoList ->
+            "List Diff\n"
+                ++ String.join "    \n" oneList
+                ++ " Compared to\n"
+                ++ String.join "    \n" twoList
+
+        Failure.CollectionDiff { expected, actual, extra, missing } ->
+            String.join "\n"
+                [ formatKeyValue "expected" expected
+                , formatKeyValue "actual" actual
+                , formatKeyValue "extra" (String.join ", " extra)
+                , formatKeyValue "missin" (String.join ", " missing)
+                ]
+
+        Failure.TODO ->
+            "TODO"
+
+        Failure.Invalid _ ->
+            description
+
+
+formatKeyValue : String -> String -> String
+formatKeyValue key val =
+    key ++ ": " ++ val
 
 
 givenCode : String -> Element Styles variations msg
