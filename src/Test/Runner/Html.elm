@@ -9,8 +9,6 @@ one of these tests in elm-reactor to have it run and show outputs.
 
 -}
 
--- import Html
-
 import Browser
 import Random
 import Test exposing (Test)
