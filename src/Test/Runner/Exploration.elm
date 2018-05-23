@@ -17,6 +17,7 @@ import Test.Runner
 import Test.Runner.Failure
 
 
+toString : Runner -> String
 toString (Runner internals) =
     let
         keyValue key value =
@@ -25,7 +26,7 @@ toString (Runner internals) =
     String.join "\n"
         [ keyValue "passed" (String.fromInt internals.passed)
         , keyValue "todos" ("\n        [ " ++ String.join "        \n" (List.map failureToString internals.todos) ++ "]")
-        , keyValue "failures" ("\n        " ++ String.join "        \n" (List.map failureToString internals.failures))
+        , keyValue "failures" ("\n     [ " ++ String.join "        \n" (List.map failureToString internals.failures) ++ "]")
         , keyValue "incomplete"
             (case internals.incomplete of
                 Nothing ->
@@ -55,8 +56,9 @@ toString (Runner internals) =
         ]
 
 
+failureToString : Failure -> String
 failureToString (Failure labels messages) =
-    String.join ", " labels ++ "->" ++ String.join ", " (List.map .description messages)
+    "failure: " ++ String.join ", " labels ++ ", reasons: " ++ String.join ", " (List.map .description messages)
 
 
 type Runner
