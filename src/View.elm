@@ -261,9 +261,9 @@ viewReason { reason, description } =
 
         Failure.ListDiff expected actual ->
             "expected\n"
-                ++ String.join "    \n" oneList
+                ++ String.join "    \n" expected
                 ++ "actual\n"
-                ++ String.join "    \n" twoList
+                ++ String.join "    \n" actual
 
         Failure.CollectionDiff { expected, actual, extra, missing } ->
             String.join "\n"
